@@ -5,6 +5,11 @@ branch:
   id: BRANCH-001
   name: "Downtown Central Pharmacy"
 
+pharmasync:
+  sync:
+    server-url: ${HO_SYNC_URL:http://localhost:8080}
+    device-secret: ${BRANCH_DEVICE_SECRET:}
+
 spring:
   application:
     name: branch-app

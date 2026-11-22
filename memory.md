@@ -22,5 +22,18 @@
 - Clean Architecture: Domain remains pure Java; JPA persistence entities in `branch-app` map cleanly to/from domain models.
 - Outbox pattern: Every mutating operation saves atomically to `operation_log` (append-only) and `outbox` (pending status) in the same transaction.
 
+- P3 completed: Head office sync API (idempotent, ack, device security)
+  - Entities: `CentralBatchStock` (stock per branch/product/batch), `BranchSyncStatus` (last acked logical clock, last sync time, total ops), `ProcessedOperation` (idempotency registry, unique operation_id)
+  - `SyncService`: applies a batch idempotently (skips already-processed UUIDs, updates central stock once per op), tracks per-branch sync status
+  - `SyncController`: `POST /api/sync/operations` returns acknowledged ids; `GET /api/sync/stock` and `GET /api/sync/sync-status` with pagination; `GET /api/sync/sync-status/{branchId}`
+  - `BranchDeviceSecurityConfig` + `BranchSecurityProperties`: HTTP Basic on `/api/sync/**` with per-branch device credentials from `BRANCH_DEVICE_CREDENTIALS` env var (`branchId:secret` list), BRANCH role, stateless
+  - RFC 9457 Problem Details via `spring.mvc.problemdetails.enabled`
+  - Tests: duplicate op applied once, unauthenticated rejected (401), paginated GET stock/sync-status (4 green tests)
+- P4 completed: Branch sync client (scheduled, retry, backoff, resumable)
+  - `SyncClientProperties`: server url, batch size, exponential backoff, max retries, fixed delay, device secret (env `BRANCH_DEVICE_SECRET`)
+  - `BranchSyncClient`: RestClient, fetches pending outbox ordered by lamport clock in small batches, sends with basic auth, retries with exponential backoff, marks acked only after server ack; acked entries never re-sent (only `status=pending` fetched)
+  - `SyncScheduler` + `SyncClientConfig` (`@EnableScheduling`, `@ConfigurationProperties`): fixed-delay scheduled sync
+  - Tests: outbox marked acked after successful sync, retry then ack on success (2 green tests)
+
 ## Next step
-P3: Head office sync API (idempotent, ack, device security)
+P5: Recall, prescription sales, 3 conflict rules, minimal transfer/reorder/dashboard
