@@ -14,6 +14,13 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  mvc:
+    problemdetails:
+      enabled: true
+
+pharmasync:
+  security:
+    branch-credentials: ${BRANCH_DEVICE_CREDENTIALS:BRANCH-001:branch-secret-001,BRANCH-002:branch-secret-002}
 
 management:
   endpoints:
