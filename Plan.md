@@ -1,6 +1,6 @@
 # Plan
 - [x] P1 Skeleton + domain (Medicine, Pack Composite, Batch State, FEFO Strategy, Operation)
-- [ ] P2 Branch POS (sale, return, receive, count, mock printer, Thymeleaf) + outbox
+- [x] P2 Branch POS (sale, return, receive, count, mock printer, Thymeleaf) + outbox
 - [ ] P3 Head office sync API (idempotent, ack, device security)
 - [ ] P4 Branch sync client (scheduled, retry, backoff, resumable)
 - [ ] P5 Recall, prescription sales, 3 conflict rules, minimal transfer/reorder/dashboard
