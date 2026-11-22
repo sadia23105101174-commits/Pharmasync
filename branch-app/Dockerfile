@@ -1,0 +1,19 @@
+FROM eclipse-temurin:21-jdk AS builder
+WORKDIR /build
+
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+COPY domain/pom.xml domain/
+COPY domain/src domain/src
+COPY branch-app/pom.xml branch-app/
+COPY branch-app/src branch-app/
+COPY head-office/pom.xml head-office/
+COPY head-office/src head-office/
+
+RUN chmod +x ./mvnw && ./mvnw clean package -DskipTests -pl branch-app -am
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /build/branch-app/target/*.jar app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pharmasync-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pharmasync_ho
+      POSTGRES_USER: pharmasync
+      POSTGRES_PASSWORD: pharmasync
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharmasync -d pharmasync_ho"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  head-office:
+    build:
+      context: .
+      dockerfile: head-office/Dockerfile
+    container_name: pharmasync-head-office
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: pharmasync_ho
+      DB_USER: pharmasync
+      DB_PASSWORD: pharmasync
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  branch-app:
+    build:
+      context: .
+      dockerfile: branch-app/Dockerfile
+    container_name: pharmasync-branch-app
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+
+volumes:
+  pgdata:
