@@ -15,7 +15,7 @@
     - Counter screen in Thymeleaf (`/counter`) for picking medicine, entering quantity and prescription details, completing sale, and viewing formatted thermal receipt.
     - REST API controllers with Bean Validation, RFC 9457 Problem Details (`GlobalExceptionHandler`), and pagination on list endpoints.
   - Demo Data Seeding: Auto-seeds 4 medicines and 6 batches (active, expired, recalled, Rx, OTC) on startup.
-  - Tests: All green (23 total tests across modules), including FEFO earliest expiry allocation, expired batch blocking, Rx rule validation, and outbox creation per sale.
+  - Tests: All green, including FEFO earliest expiry allocation, expired batch blocking, Rx rule validation, and outbox creation per sale.
 
 ## Decisions
 - Spring Boot version: `3.4.3` on Java 21.
@@ -35,5 +35,15 @@
   - `SyncScheduler` + `SyncClientConfig` (`@EnableScheduling`, `@ConfigurationProperties`): fixed-delay scheduled sync
   - Tests: outbox marked acked after successful sync, retry then ack on success (2 green tests)
 
+- P5 completed: Recall, prescription sales, 3 conflict rules, minimal transfer/reorder/dashboard
+  - `docs/conflict-rules.md`: documents the 3 deterministic rules (old-price sale stands + difference reported; negative stock → count task; post-recall sales flagged)
+  - Branch `Recall` entity + `RecallService`: apply recall sets batch RECALLED, persists recall, records RECALL_APPLIED outbox op; `isSaleAfterRecall` flags sales after recall time
+  - `SaleService`: sets `recalledBatchSale` flag when sale time is after a batch's recall time (Rule 3)
+  - `ReportController`: `GET /api/v1/reports/prescriptions` (Rx register), `GET /api/v1/reports/recalls/{batchId}` (qty on hand + units sold after recall), `GET /api/v1/reports/dashboard` (stock by batch, last sync, pending ops, expiring-in-90-days value)
+  - `Transfer` entity + `TransferState` enum + `TransferService`: DISPATCHED → IN_TRANSIT → RECEIVED, quantity-difference flag on receipt
+  - `ReorderService`: suggested qty = max(0, velocity*leadTime + safetyStock − onHand) from 30-day sales velocity
+  - Head-office `Recall` entity + `RecallService` + `RecallController`: `POST /api/v1/recalls`, `GET /api/v1/recalls/report/{batchNumber}` (stock per branch)
+  - Tests: ConflictRulesTest (3 rules), RecallServiceTest, ReportControllerTest, TransferServiceTest, ReorderServiceTest, HeadOfficeRecallControllerTest (all green)
+
 ## Next step
-P5: Recall, prescription sales, 3 conflict rules, minimal transfer/reorder/dashboard
+P6: Tests (JUnit, Testcontainers, ArchUnit)

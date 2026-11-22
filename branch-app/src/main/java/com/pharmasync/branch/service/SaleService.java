@@ -37,6 +37,7 @@ public class SaleService {
     private final FefoPickingStrategy fefoPickingStrategy;
     private final ReceiptPrinter receiptPrinter;
     private final OperationRecordingService operationRecordingService;
+    private final RecallService recallService;
     private final String branchId;
 
     public SaleService(MedicineRepository medicineRepository,
@@ -45,6 +46,7 @@ public class SaleService {
                        FefoPickingStrategy fefoPickingStrategy,
                        ReceiptPrinter receiptPrinter,
                        OperationRecordingService operationRecordingService,
+                       RecallService recallService,
                        @Value("${branch.id:BRANCH-001}") String branchId) {
         this.medicineRepository = medicineRepository;
         this.batchRepository = batchRepository;
@@ -52,6 +54,7 @@ public class SaleService {
         this.fefoPickingStrategy = fefoPickingStrategy;
         this.receiptPrinter = receiptPrinter;
         this.operationRecordingService = operationRecordingService;
+        this.recallService = recallService;
         this.branchId = branchId;
     }
 
@@ -196,6 +199,12 @@ public class SaleService {
         }
 
         sale.setTotalAmount(totalAmount);
+
+        // Rule 3: flag sales made after a batch's recall time (offline window).
+        boolean recalledSale = allocations.stream()
+                .anyMatch(a -> recallService.isSaleAfterRecall(a.batchId(), now));
+        sale.setRecalledBatchSale(recalledSale);
+
         Sale savedSale = saleRepository.save(sale);
 
         // 5. Print receipt via Mock Receipt Printer Adapter

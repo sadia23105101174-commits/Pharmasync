@@ -34,6 +34,9 @@ public class Sale {
     @Column
     private LocalDate prescriptionDate;
 
+    @Column(nullable = false)
+    private boolean recalledBatchSale = false;
+
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SaleLine> lines = new ArrayList<>();
 
@@ -54,6 +57,14 @@ public class Sale {
         this.patientName = patientName;
         this.prescriberRegNo = prescriberRegNo;
         this.prescriptionDate = prescriptionDate;
+    }
+
+    public boolean isRecalledBatchSale() {
+        return recalledBatchSale;
+    }
+
+    public void setRecalledBatchSale(boolean recalledBatchSale) {
+        this.recalledBatchSale = recalledBatchSale;
     }
 
     public void addLine(SaleLine line) {

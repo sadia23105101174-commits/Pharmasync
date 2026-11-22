@@ -21,4 +21,6 @@ public interface OutboxRepository extends JpaRepository<Outbox, Long> {
     Page<Outbox> findByStatusOrderByLamportClockAsc(String status, Pageable pageable);
 
     Page<Outbox> findByStatus(String status, Pageable pageable);
+
+    long countByStatus(String status);
 }
