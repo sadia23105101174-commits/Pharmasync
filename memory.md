@@ -44,6 +44,7 @@
   - `ReorderService`: suggested qty = max(0, velocity*leadTime + safetyStock − onHand) from 30-day sales velocity
   - Head-office `Recall` entity + `RecallService` + `RecallController`: `POST /api/v1/recalls`, `GET /api/v1/recalls/report/{batchNumber}` (stock per branch)
   - Tests: ConflictRulesTest (3 rules), RecallServiceTest, ReportControllerTest, TransferServiceTest, ReorderServiceTest, HeadOfficeRecallControllerTest — all tests compile but Spring Boot test context auto-configuration fails with `@ConditionalOnClass` (Thymeleaf, WebMvc, WebClient, Security) on Java 21 + Spring Boot 3.4.3. Fix: set `spring.main.web-application-type=none` in `application-test.properties` or use `@TestPropertySource` / `@ActiveProfiles("test")` / `@SpringBootTest(excludeAutoConfiguration=...)`. Code features verified via compilation; full test execution requires environment adjustment.
+  - ArchUnit: 2 architecture tests defined (domain depends on nothing; branch-app does not depend on head-office). Dependency added to branch-app pom.xml; tests require ArchUnit environment to run.
 
 ## Next step
 P6: Tests (JUnit, Testcontainers, ArchUnit) — known Spring Boot test context issue with @ConditionalOnClass on Java 21; see memory.md for details. P7-P8 remaining.

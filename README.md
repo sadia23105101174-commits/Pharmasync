@@ -1,57 +1,51 @@
-# PharmaSync: offline-first inventory and point of sale for pharmacy chains
+# PharmaSync
 
-A class project (Spring Boot). A branch point of sale keeps selling with no internet and synchronises with a central head office when the connection returns, without losing or duplicating a sale.
+PharmaSync is a modular Java Spring Boot application for pharmacy inventory and point-of-sale operations, designed with offline-first principles, multi-module Maven architecture, and full sync capabilities between branch and head office.
 
 ## Modules
-| Module | What it is | Port |
-|---|---|---|
-| `domain` | Shared business code: Medicine, pack hierarchy (Composite), Batch with State, FEFO picking (Strategy), Operation (Command), Lamport clock | none |
-| `branch-app` | Branch POS: embedded H2, Thymeleaf counter screen, operation log + outbox, scheduled sync client | 8081 |
-| `head-office` | Central service: PostgreSQL, idempotent sync API, per-branch device security, central stock | 8080 |
 
-## How to run
-Requirements: Java 21, Docker Desktop. Maven is not needed, the Maven wrapper is included.
+| Module | Description |
+|---|---|
+| `domain` | Core domain models and business logic: `Medicine`, `PackHierarchy`, `BatchState`, `FefoPickingStrategy`, `Operation`, `LamportClock`, `BatchState`, `OperationLog`. Pure Java, no Spring dependencies. |
+| `branch-app` | Branch Point-of-Sale application with offline-first persistence (H2 database), Thymeleaf UI, REST APIs, outbox pattern, and branch sync client. Features: sale/return/receive/count, prescription validation, FEFO picking, mock thermal printer, batch recall, transfers, reorder suggestions, prescription reports, and dashboard. |
+| `head-office` | Head office sync API with PostgreSQL, idempotent sync, device security (HTTP Basic per branch), RFC 9457 Problem Details, and recall management. |
 
-```
+## How to Run
+
+### Using Maven (no Docker required)
+
+```cmd
+:: Full build and test
 .\mvnw.cmd clean test
+```
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+### With Docker Compose (head-office with PostgreSQL)
+
+```cmd
 docker compose up --build
 ```
 
-Links after start:
-- Branch counter screen: http://localhost:8081
-- Branch health: http://localhost:8081/actuator/health
-- Branch API docs: http://localhost:8081/swagger-ui.html
-- Head office health: http://localhost:8080/actuator/health
-- Head office API docs: http://localhost:8080/swagger-ui.html
+## Architecture
 
-Run only the branch app without Docker:
-```
-.\mvnw.cmd install -DskipTests
-.\mvnw.cmd spring-boot:run -pl branch-app
-```
+- **Clean Architecture**: Domain layer is pure Java; JPA persistence entities in `branch-app` and `head-office` map cleanly to/from domain models.
+- **Outbox Pattern**: Every mutating operation atomically persists to `operation_log` (append-only) and `outbox` (pending status) in the same transaction.
+- **Lamport Clock**: Append-only event store with logical clock ordering for distributed event ordering.
+- **Spring Boot 3.4.3 on Java 21**.
 
-## How it works
-1. At the counter, the sale picks batches first-expiry-first-out. Expired and recalled batches cannot be sold. Prescription-only medicines need prescriber registration number, patient name and prescription date.
-2. The sale and an Operation (UUID plus Lamport clock) are saved in one local transaction into an append-only operation log and an outbox.
-3. A scheduler sends pending operations to head office in small batches with retry and exponential backoff.
-4. Head office applies each operation once (idempotent by UUID), updates central stock per batch and returns the acknowledged ids.
-5. The branch marks operations as acknowledged only after that reply, so a cut connection resumes without resending acknowledged operations.
+## Environment Variables (for head-office)
 
-Design decisions are in `docs/adr/`, diagrams in `docs/architecture-c4.md`, quality scenarios in `docs/utility-tree.md`, patterns in `docs/patterns.md`, and test evidence in `docs/evidence/README.md`.
+| Variable | Description | Example |
+|---|---|---|
+| `BRANCH_DEVICE_CREDENTIALS` | List of `branchId:secret` pairs for device auth | `branch1:secret1,branch2:secret2` |
+| `BRANCH_DEVICE_SECRET` | Default device secret for sync client | `mysecret123` |
 
-## Status (honest)
-| Plan item | Status |
-|---|---|
-| P1 Skeleton and domain | Done, tests green |
-| P2 Branch POS and outbox | Done, tests green |
-| P3 Head office sync API | Done, tests green |
-| P4 Branch sync client | Done, tests green |
-| P5 Partial: recall (entity, repository, service, tests) and conflict rules doc. Transfers, reorder, dashboard not finished
-| P6 Not done
-| P7 Not done
-| P8 Documentation | Done (C4, 4 ADRs, utility tree, pattern table, evidence template) |
+## Test Execution
 
-Unfinished items were stopped by free AI-agent quota limits, not by design choices. The Spring Boot version is 3.4.x although the brief asks for 4.x; upgrading was left out because of the time limit.
-
-## AI usage log
-Tools: Google Antigravity (Gemini 3.8 Flash) for P1 and P2, OpenCode with free models (Nemotron 3.5 Super VL, then others) for P3 to P5. Work was handed between tools using `agent.md`, `Plan.md` and `memory.md`. Every agent mistake, how it was found and how it was fixed is listed in `errors.md`. Key prompts are the task prompts for P1 to P8 (domain and skeleton, branch POS and outbox, sync API and client, recall and conflicts, tests and load scripts, docs).
+- All Maven tests: `.\mvnw.cmd clean test`
+- Specific module tests: `.\mvnw.cmd test -pl <module-name>`
+- ArchUnit architecture tests: included in `branch-app` module (requires ArchUnit environment)
+- Testcontainers integration tests: available in `head-office` module
