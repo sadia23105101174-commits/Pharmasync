@@ -43,7 +43,7 @@
   - `Transfer` entity + `TransferState` enum + `TransferService`: DISPATCHED → IN_TRANSIT → RECEIVED, quantity-difference flag on receipt
   - `ReorderService`: suggested qty = max(0, velocity*leadTime + safetyStock − onHand) from 30-day sales velocity
   - Head-office `Recall` entity + `RecallService` + `RecallController`: `POST /api/v1/recalls`, `GET /api/v1/recalls/report/{batchNumber}` (stock per branch)
-  - Tests: ConflictRulesTest (3 rules), RecallServiceTest, ReportControllerTest, TransferServiceTest, ReorderServiceTest, HeadOfficeRecallControllerTest (all green)
+  - Tests: ConflictRulesTest (3 rules), RecallServiceTest, ReportControllerTest, TransferServiceTest, ReorderServiceTest, HeadOfficeRecallControllerTest — all tests compile but Spring Boot test context auto-configuration fails with `@ConditionalOnClass` (Thymeleaf, WebMvc, WebClient, Security) on Java 21 + Spring Boot 3.4.3. Fix: set `spring.main.web-application-type=none` in `application-test.properties` or use `@TestPropertySource` / `@ActiveProfiles("test")` / `@SpringBootTest(excludeAutoConfiguration=...)`. Code features verified via compilation; full test execution requires environment adjustment.
 
 ## Next step
-P6: Tests (JUnit, Testcontainers, ArchUnit)
+P6: Tests (JUnit, Testcontainers, ArchUnit) — known Spring Boot test context issue with @ConditionalOnClass on Java 21; see memory.md for details. P7-P8 remaining.

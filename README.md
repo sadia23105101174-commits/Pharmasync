@@ -46,7 +46,7 @@ Design decisions are in `docs/adr/`, diagrams in `docs/architecture-c4.md`, qual
 | P2 Branch POS and outbox | Done, tests green |
 | P3 Head office sync API | Done, tests green |
 | P4 Branch sync client | Done, tests green |
-|P5 Partial: recall in head-office (build pass korle), ba Partial on branch p5-wip, not merged (revert korte hole)
+| P5 Partial: recall (entity, repository, service, tests) and conflict rules doc. Transfers, reorder, dashboard not finished
 | P6 Not done
 | P7 Not done
 | P8 Documentation | Done (C4, 4 ADRs, utility tree, pattern table, evidence template) |

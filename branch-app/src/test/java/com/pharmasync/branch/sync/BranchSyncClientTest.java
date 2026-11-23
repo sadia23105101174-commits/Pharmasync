@@ -3,7 +3,6 @@ package com.pharmasync.branch.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pharmasync.branch.entity.Outbox;
 import com.pharmasync.branch.repository.OutboxRepository;
-import com.pharmasync.domain.sync.SyncBatchResponse;
 import com.pharmasync.domain.operation.OperationType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +79,8 @@ class BranchSyncClientTest {
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(SyncBatchResponse.of(List.of(op1, op2)))));
+                        .body("{\"acknowledgedIds\":[\"%s\",\"%s\"],\"acknowledgedCount\":2,\"processedAt\":\"%s\"}"
+                                .formatted(op1.toString(), op2.toString(), Instant.now())));
 
         client.sync();
 
@@ -105,7 +105,8 @@ class BranchSyncClientTest {
         server.expect(requestTo("http://mock-head-office/api/sync/operations"))
                 .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(SyncBatchResponse.of(List.of(op1)))));
+                        .body("{\"acknowledgedIds\":[\"%s\"],\"acknowledgedCount\":1,\"processedAt\":\"%s\"}"
+                                .formatted(op1.toString(), Instant.now())));
 
         client.sync();
 
