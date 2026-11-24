@@ -43,15 +43,6 @@ services:
     restart: unless-stopped
     ports:
       - "8081:8081"
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: pharmasync_ho
-      DB_USER: pharmasync
-      DB_PASSWORD: pharmasync
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 volumes:
   pgdata:
