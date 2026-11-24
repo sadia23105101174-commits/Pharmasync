@@ -41,6 +41,11 @@ services:
       dockerfile: branch-app/Dockerfile
     container_name: pharmasync-branch-app
     restart: unless-stopped
+    environment:
+      HO_SYNC_URL: http://head-office:8080
+      BRANCH_DEVICE_SECRET: branch-secret-001
+    depends_on:
+      - head-office
     ports:
       - "8081:8081"
 

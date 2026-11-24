@@ -17,4 +17,11 @@ For each run paste: date, command, raw output file name, result, and what was ch
 | Q4 safety | scripts/qa4_safety.js | 5 virtual users | zero unsafe sales | N/A — k6 not installed in this environment | | Script written; requires k6 and running server |
 | Q5 low bandwidth | scripts/qa5_low_bandwidth.js | 5 virtual users | 800 sales under 60 s | N/A — k6 not installed in this environment | | Script written; requires k6 and running server |
 
-If a script could not be run in time, write exactly that and why. Do not invent numbers.
+## Not run
+The k6 scripts for QA1 to QA5 are written in scripts/ but were not run: k6 was not installed and the AI-agent free quota ended before they could be run. No numbers are reported for them.
+
+## Docker run evidence
+Screenshot *.png files in this folder show the branch counter screen and head-office sync status after docker compose up --build. A sale at the branch was synced and acknowledged by head office (sync-status: totalOperationsProcessed 3).
+
+## Tests
+.\mvnw.cmd clean test: BUILD SUCCESS (domain, branch-app, head-office).
